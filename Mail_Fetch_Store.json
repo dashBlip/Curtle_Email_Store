@@ -1,0 +1,2701 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "summarizationMethodAndPrompts": {
+            "values": {
+              "combineMapPrompt": "=## Email Summarization System Prompt\n\nYou are a specialized AI assistant focused exclusively on creating precise, concise summaries of emails. Your task is to analyze the complete email text provided as input and produce a clear, comprehensive summary that captures all essential information in a cohesive narrative format.\n\n### Your responsibilities:\n\n1. Extract and summarize the main topic and purpose of the email\n2. Identify key points, requests, deadlines, or action items mentioned\n3. Preserve critical details like dates, times, locations, and names\n4. Maintain the original tone and urgency level of the message\n5. Organize information in order of importance\n6. Remove unnecessary pleasantries, redundancies, and filler content\n\n### Summary format:\n\n- Begin with a one-sentence overview of the email's main purpose\n- Present all key information in a cohesive paragraph format (no bullet points)\n- Follow a logical flow from most to least important information\n- Include any critical deadlines, requests, or action items within the narrative\n- Keep the summary to 100 words max\n- Use clear, straightforward language with appropriate transitions between ideas\n- Preserve the original intent and meaning without introducing new information\n\n### What to exclude:\n\n- Greetings and sign-offs\n- Redundant information\n- Minor details that don't affect the main message\n- Your own opinions or interpretations\n- Information not explicitly stated in the email\n\nThe email text to summarize is:\n{{ $json.data[1].text }}",
+              "prompt": "=Analyze the following email and perform two tasks:\n\n1. Classify the email into one of these categories: Work, Personal, Spam, Promotions, Other.\n2. Classify the email into one of these Urgency levels: {{ $json.data[0].tags.join() }}\n\n\n3. Provide a concise summary of the email in max 100 words.\n\nPresent your response in this format:\n\nCategory: [chosen category]\nSummary: [your summary]\nUrgency-Level: [chosen Urgency levels]\n\nThe email text is:\n\"{{ $json.data[1].text }}\""
+            }
+          }
+        }
+      },
+      "id": "61b96fea-fcb8-4837-b6f5-f7f7807c8233",
+      "name": "Email Summarization Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainSummarization",
+      "position": [
+        820,
+        1220
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = $input.first().json.response.text;\nconst categoryMatch = output.match(/Category:\\s*(.+?)\\n/);\nconst summaryMatch = output.match(/Summary:\\s*(.+?)\\n/);\nconst urgencyMatch = output.match(/Urgency-Level:\\s*(.+)/s);\n\nconst category = categoryMatch ? categoryMatch[1].trim() : 'Unknown';\nconst summary = summaryMatch ? summaryMatch[1].trim() : 'No summary available';\nconst urgency = urgencyMatch ? urgencyMatch[1].trim() : 'Not Specified';\n\nreturn { json: { category, summary, urgency } };"
+      },
+      "id": "478c1ac3-c44d-417e-a27f-29af0260f3f7",
+      "name": "Parse email analysis",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1120,
+        1220
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"content\": {\n\t\t\t\"type\": \"string\"\n\t\t}\n\t}\n}",
+        "autoFix": true
+      },
+      "id": "cbc5a862-4d76-4ecb-bc92-225ce661d6b0",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        800,
+        640
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "=output",
+        "options": {}
+      },
+      "id": "7fc4a1d5-9a38-499c-a800-55382fc986c7",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.splitOut",
+      "position": [
+        1020,
+        480
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "data.output"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6a6560f9-0e76-4c0e-83f2-80ba73f8cbe1",
+      "name": "Aggregate",
+      "type": "n8n-nodes-base.aggregate",
+      "position": [
+        1880,
+        880
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "model": "meta-llama/llama-4-maverick:free",
+        "options": {}
+      },
+      "id": "85756454-69dc-497b-b826-09de46e40da3",
+      "name": "OpenRouter Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        2060,
+        880
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "openRouterApi": {
+          "id": "qd1qqOWZA6w5iyuQ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "5cf96104-c887-44fe-b528-30171943dd15",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{ $binary.isNotEmpty() }}",
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d9c9e548-3519-41cf-8d3b-e345ef6d0e73",
+      "name": "Contain attachments?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -660,
+        840
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=## PDF Summarization System Prompt\n\nYou are a specialized AI assistant tasked with creating concise, accurate summaries of documents. Your goal is to extract and distill the most important information from the content provided as input and present it in a clear, precise plain text summary.\n\n### Your responsibilities:\n\n1. Identify the main topic and purpose of the document\n2. Extract key points, arguments, findings, or conclusions\n3. Preserve essential data points, statistics, dates, and figures\n4. Recognize and highlight critical information and takeaways\n5. Maintain the original document's logical structure in your summary\n6. Prioritize information based on its significance to the document's purpose\n\n### Summary format:\n\n- Provide your summary in plain text only (no formatting)\n- Begin with a concise overview of the document's main topic and purpose\n- Present important points in a logical, sequential narrative\n- Use clear, direct language that accurately represents the original content\n- Maintain appropriate context for all extracted information\n- Keep the summary concise while including all crucial information\n- Use proper transitions between topics to maintain readability\n\n### What to exclude:\n\n- Minor details that don't contribute to the main points\n- Repetitive information\n- Extensive examples unless they're critical to understanding\n- Citations, references, and bibliographic details unless specifically important\n- Decorative or non-essential images (describe important visualized data if relevant)\n- Your own interpretations or opinions not supported by the document\n\n{{ $json.text }}",
+        "hasOutputParser": true
+      },
+      "id": "eaf4c6e9-12b9-45a4-bd1e-8c0d14fb8789",
+      "name": "PDF Analyzer",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        680,
+        480
+      ],
+      "typeVersion": 1.5
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "11592bed-7555-4e61-a692-d71b1a733fd4",
+              "name": "content",
+              "type": "string",
+              "value": "={{ $json.content }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a166d566-2617-4f77-a21e-f697983ca48f",
+      "name": "Map image summaries",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        440,
+        880
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ef348518-a9fb-4ea9-bd70-9dcf3bff092a",
+              "name": "content",
+              "type": "string",
+              "value": "={{ $json.summary }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c9e16f4c-6617-46bb-8a4c-57c22721c583",
+      "name": "Email summary",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1340,
+        1220
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1020,
+        840
+      ],
+      "id": "41cf9ff2-df27-434f-96b9-e4821f126ab1",
+      "name": "Gmail Trigger"
+    },
+    {
+      "parameters": {
+        "model": "meta-llama/llama-4-maverick:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        940,
+        760
+      ],
+      "id": "03301640-eb7e-495b-a0c9-f649456b98f4",
+      "name": "OpenRouter Chat Model3",
+      "credentials": {
+        "openRouterApi": {
+          "id": "qd1qqOWZA6w5iyuQ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 1,
+        "simple": false,
+        "filters": {
+          "labelIds": [
+            "INBOX"
+          ],
+          "readStatus": "unread",
+          "receivedAfter": "2025-06-21T20:11:08"
+        },
+        "options": {
+          "dataPropertyAttachmentsPrefixName": "attachment_",
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -840,
+        840
+      ],
+      "id": "cad0ae41-e083-4c56-b3c5-bdf89b503c14",
+      "name": "Gmail Fetch",
+      "webhookId": "5d3dfd36-4175-4fba-9c48-0b2ac06106d3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "9omR2T5rOYJqJYUq",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let results = [];\n\nfor (const item of $input.all()) {\n  for (key of Object.keys(item.binary)) {\n        results.push({\n            json: {},\n            binary: {\n                data: item.binary[key],\n            }\n        });\n    }\n}\n\nreturn results;"
+      },
+      "id": "d3d9b8f8-5fd0-47c3-a4d7-294ed108ebdb",
+      "name": "Retrieve Attachments",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -320,
+        820
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "loose"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "31b7fb0b-3149-479e-852a-52c1ec8935ca",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $binary.data.fileExtension }}",
+                    "rightValue": "pdf"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "pdf"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9f0c380d-7f62-4e73-a43f-784d43c55971",
+                    "leftValue": "={{ $binary.data.fileExtension }}",
+                    "rightValue": "xlsx",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "xlsx"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8ca020df-de7d-4a2c-a4d4-ea32aa04a5cb",
+                    "leftValue": "={{ $binary.data.fileExtension }}",
+                    "rightValue": "xls",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "xls"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "822b138d-cedf-47ab-ad56-4522ac55e162",
+                    "leftValue": "={{ $binary.data.fileExtension }}",
+                    "rightValue": "csv",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "csv"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "loose"
+                },
+                "conditions": [
+                  {
+                    "id": "9fe6411d-cf35-4fdd-a9ad-8c96f0a5cf66",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    },
+                    "leftValue": "={{ $binary.data.fileExtension }}",
+                    "rightValue": "=/^(jpg|png|heic)$/i"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "image"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "64e38acc-b69f-4312-9b09-50856e8cd869",
+      "name": "image/pdf",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -160,
+        780
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "id": "8f4666df-8dca-4a46-957e-32fb62f2ab91",
+      "name": "PDF Extraction",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        200,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-r1",
+        "options": {}
+      },
+      "id": "fa80cc0a-b813-4aed-b409-07ba87ea8fd9",
+      "name": "Deepseek r1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        680,
+        640
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "openRouterApi": {
+          "id": "qd1qqOWZA6w5iyuQ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "id": "a6c9e61c-de39-4bf2-ba57-7f99ef0ede8a",
+      "name": "Append All The Summaries",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        1520,
+        860
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $input.all();\n\nconst outputData = inputData.map(item => {\n  \n  const outputValue = item.json.output || item.json.content;\n\n  return {\n    data: {\n      output: outputValue \n    }\n  };\n});\n\nreturn outputData;"
+      },
+      "id": "a54dabca-d0d1-48d8-aff1-cb61c051b33b",
+      "name": "Parse Data",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1700,
+        880
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=The inputs to synthesize are:\n'''\n{{ $json.output }}\n'''",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=## Comprehensive Email Analysis System Prompt\n\nYou are a specialized AI assistant tasked with creating a unified, concise summary of an email and all its attachments. Your input includes a summary of the email text, summaries of any images, and summaries of any PDF attachments. Your goal is to synthesize all this information into a single coherent summary that captures the essential message and purpose. \n\n### Your responsibilities:\n\n1. Identify the overarching theme or purpose connecting the email and its attachments\n2. Recognize relationships between the email content and the attached materials\n3. Extract and consolidate the most critical information from all sources\n4. Maintain proper context when combining information from different sources\n5. Prioritize information based on relevance to the email's main purpose\n6. Create a unified narrative that flows logically between email content and attachments\n\n### Input structure:\n- Email summary: A summary of the main email text\n- Image descriptions: Summaries of any images attached to the email\n- PDF summaries: Condensed versions of any PDF documents attached\n\n### Output format:\n\n- Provide your summary in plain text only\n- Begin with a one-sentence statement of the email's overall purpose and theme\n- Present a unified narrative that integrates information from the email and all attachments\n- Organize information by importance and relevance, not by source\n- Keep the final summary concise (100 words maximum) while including all essential information\n- Use clear transitions to maintain coherence when moving between different information sources\n- Preserve the original intent and tone of the communication\n\n### What to include:\n\n- The main topic and purpose of the communication\n- Key points from both the email and attachments\n- Critical requests, deadlines, or action items\n- Essential details like dates, figures, or specific references\n- Contextual information that clarifies the purpose of attachments\n\n### What to exclude:\n\n- Redundant information repeated across multiple sources\n- Minor details that don't contribute to understanding the main message\n- Excessive descriptions of attachments beyond their relevance to the email's purpose\n- Your own interpretations beyond what's supported by the input materials"
+            }
+          ]
+        }
+      },
+      "id": "c2e93d60-07e0-4467-8954-94bbf54eb08a",
+      "name": "Final Summary Generation",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        2080,
+        700
+      ],
+      "typeVersion": 1.5
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate concise tags (2-3 words each) for the Supabase vector store to optimize document retrieval based on the provided text: {{ $json.text }}. Use the metadata: id: {{ $json.output[0].id }}, subject: {{ $json.output[0].subject }}, date: {{ $json.output[0].date }}, sender: {{ $json.output[0].sender }}, Tags should be relevant, specific, and avoid unnecessary or overly broad terms.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        2840,
+        1040
+      ],
+      "id": "5847824a-b9ba-4e2b-ae93-751460926c26",
+      "name": "Tags Generator"
+    },
+    {
+      "parameters": {
+        "html": "Sender ",
+        "destinationKey": "={{ $json }}",
+        "options": {}
+      },
+      "id": "93015d59-3e32-40cd-a913-34b7d31aa255",
+      "name": "HTML to MD",
+      "type": "n8n-nodes-base.markdown",
+      "position": [
+        -320,
+        1240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -100,
+        1240
+      ],
+      "id": "8a5cf979-ba43-4554-9e85-9bb5ba749a06",
+      "name": "Wait",
+      "webhookId": "d63b3bac-75eb-4740-bc65-de7778d76a4d"
+    },
+    {
+      "parameters": {
+        "content": "### Fetching The Gmail & Attachments\n",
+        "height": 240,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1080,
+        780
+      ],
+      "typeVersion": 1,
+      "id": "fffde0e1-0c7c-4a7f-bc1e-eec41ba88de9",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "Analyze the given image and give summary of the same",
+        "inputType": "base64",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        200,
+        880
+      ],
+      "id": "7255604d-5d79-4c9d-9004-40c4a9761759",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "9fWRmnZTn8WPiQ2O",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1340,
+        1580
+      ],
+      "id": "0f7730d5-19e6-4731-b354-416676c64de5",
+      "name": "Wait1",
+      "webhookId": "03abbb69-1273-4019-b52a-768b313d59ba"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "text"
+            },
+            {
+              "fieldToAggregate": "=output"
+            }
+          ]
+        },
+        "options": {
+          "mergeLists": true
+        }
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2640,
+        880
+      ],
+      "id": "f6b2ccdc-233c-4b14-9b85-c2b89a0a4d07",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2460,
+        880
+      ],
+      "id": "5f263134-70dc-43da-bccd-5da412abee90",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"Title\": \"concise title of the email\",\n  \"Tags\": [\"tag1\", \"tag2\", \"tag3\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2920,
+        1200
+      ],
+      "id": "b7645891-ce37-45e2-97e2-66de7eac0dd5",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3160,
+        900
+      ],
+      "id": "0c79877e-5800-421c-845f-dc2281674c5f",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0f4e27ce-d75d-4430-9d38-0ff2f1cef49b",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "02395006-1826-49b1-ac49-78927465e719",
+              "name": "subject",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "984419d9-5917-4df4-9c1d-6aa64ceff375",
+              "name": "date",
+              "value": "={{ $json.headers.date }}",
+              "type": "string"
+            },
+            {
+              "id": "c09ea6d2-bceb-44ab-9952-22313730384b",
+              "name": "sender",
+              "value": "={{ $json.from.value[0].address }}",
+              "type": "string"
+            },
+            {
+              "id": "e2ab2679-18be-4f09-b9ed-6e55b12a24ad",
+              "name": "sender_name",
+              "value": "={{ $json.from.value[0].name }}",
+              "type": "string"
+            },
+            {
+              "id": "d647d8ff-af94-445c-b471-724fb4e6a228",
+              "name": "reciever",
+              "value": "={{ $json.to.value[0].address }}",
+              "type": "string"
+            },
+            {
+              "id": "20189f31-0e57-4d46-8f18-01485c3cbd21",
+              "name": "reciever_name",
+              "value": "={{ $json.to.value[0].name }}",
+              "type": "string"
+            },
+            {
+              "id": "dcbdb4d4-8ea6-44a6-a1bf-e57417810990",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        1240
+      ],
+      "id": "a0395065-7d76-41fe-b3dd-8a89dd4589cf",
+      "name": "Data Processing1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e0609126-6af2-42ef-b6c3-568dc983e798",
+              "name": "output",
+              "value": "={{ $json}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        320,
+        1580
+      ],
+      "id": "dbd8a844-11f9-4a58-b0da-6e330b6dff8b",
+      "name": "Data Processing2"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 50,
+        "options": {
+          "splitCode": "markdown"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        4740,
+        1200
+      ],
+      "id": "bf55bd3e-acc5-4f74-9809-c43a35bc1b7a",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $('Data Processing3').item.json.Email_Summary }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "id_code_of_particular_mail",
+                "value": "={{ $('Data Processing3').item.json.Metadata.id }}"
+              },
+              {
+                "name": "subject",
+                "value": "={{ $('Data Processing3').item.json.Metadata.subject }}"
+              },
+              {
+                "name": "date",
+                "value": "={{ $('Data Processing3').item.json.Metadata.date }}"
+              },
+              {
+                "name": "sender_mail",
+                "value": "={{ $('Data Processing3').item.json.Metadata.sender }}"
+              },
+              {
+                "name": "sender_name",
+                "value": "={{ $('Data Processing3').item.json.Metadata.sender_name }}"
+              },
+              {
+                "name": "reciever_mail",
+                "value": "={{ $('Data Processing3').item.json.Metadata.reciever }}"
+              },
+              {
+                "name": "reciever_name",
+                "value": "={{ $('Data Processing3').item.json.Metadata.reciever_name }}"
+              },
+              {
+                "name": "original_mail",
+                "value": "={{ $('Data Processing3').item.json.Metadata.text }}"
+              },
+              {
+                "name": "topic",
+                "value": "={{ $('Data Processing3').item.json.Topic }}"
+              },
+              {
+                "name": "tags_1",
+                "value": "={{ $('Data Processing3').item.json.Tags }}"
+              },
+              {
+                "name": "tpkey",
+                "value": "={{ $('Get a row').item.json.user_id }}"
+              },
+              {
+                "name": "document_involved",
+                "value": "={{ $('pas')  }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "57e1ef88-cc5c-4d99-a0ad-9d482798ae05",
+      "name": "Enhanced Default Data Loader1",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        4640,
+        1060
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        4420,
+        1060
+      ],
+      "id": "8cba35f1-181d-4b7c-b4ec-4af32c71bc0f",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "9fWRmnZTn8WPiQ2O",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "n8n3",
+          "mode": "list",
+          "cachedResultName": "n8n3"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        4460,
+        900
+      ],
+      "id": "282a36dd-2b98-4a30-9bfa-d0301cb1999d",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "t0yqc0VBGVtCS3YG",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "text",
+              "renameField": true,
+              "outputFieldName": "Email_Summary"
+            },
+            {
+              "fieldToAggregate": "output",
+              "renameField": true,
+              "outputFieldName": "Metadata"
+            }
+          ]
+        },
+        "options": {
+          "mergeLists": true
+        }
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3320,
+        900
+      ],
+      "id": "605ebc54-e82f-4b75-a183-6b310a56b650",
+      "name": "Aggregate4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0f4e27ce-d75d-4430-9d38-0ff2f1cef49b",
+              "name": "Email_Summary",
+              "value": "={{ $json.Email_Summary[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "02395006-1826-49b1-ac49-78927465e719",
+              "name": "Metadata",
+              "value": "={{ $json.Metadata[0] }}",
+              "type": "object"
+            },
+            {
+              "id": "984419d9-5917-4df4-9c1d-6aa64ceff375",
+              "name": "Tags",
+              "value": "={{ $json.Metadata[1].Tags }}",
+              "type": "array"
+            },
+            {
+              "id": "c09ea6d2-bceb-44ab-9952-22313730384b",
+              "name": "Topic",
+              "value": "={{ $json.Metadata[1].Title }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3500,
+        900
+      ],
+      "id": "ab034040-879e-4ad9-9810-9750a9c81e3e",
+      "name": "Data Processing3"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3880,
+        900
+      ],
+      "id": "af400aa6-ecaa-4e94-810a-1d48efac537d",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {
+          "includeBinaries": false
+        }
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        4060,
+        740
+      ],
+      "id": "496ff1cd-b71b-44f7-a9f2-65e1873b8e65",
+      "name": "Aggregate5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0f4e27ce-d75d-4430-9d38-0ff2f1cef49b",
+              "name": "Email_Summary",
+              "value": "={{ $json.data[1].Email_Summary }}",
+              "type": "string"
+            },
+            {
+              "id": "02395006-1826-49b1-ac49-78927465e719",
+              "name": "Metadata",
+              "value": "={{ $json.data[1].Metadata }}",
+              "type": "object"
+            },
+            {
+              "id": "984419d9-5917-4df4-9c1d-6aa64ceff375",
+              "name": "Tags",
+              "value": "={{ $json.data[1].Tags }}",
+              "type": "array"
+            },
+            {
+              "id": "c09ea6d2-bceb-44ab-9952-22313730384b",
+              "name": "Topic",
+              "value": "={{ $json.data[1].Topic }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4280,
+        900
+      ],
+      "id": "8f6f5f63-b445-4b56-82d9-80b5cba22104",
+      "name": "Data Processing"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        1420
+      ],
+      "id": "a59cec3d-200b-457c-b221-b4e21c4e1a2e",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        3300,
+        1420
+      ],
+      "id": "90832503-6200-41db-b32b-de1d243b321c",
+      "name": "No Operation, do nothing1",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        200,
+        540
+      ],
+      "id": "63974d3b-8de2-424f-8d72-4ac5bd2978b7",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "operation": "xls",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        200,
+        360
+      ],
+      "id": "9c9f28ad-abed-4df7-bcb7-e19046431631",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        200,
+        180
+      ],
+      "id": "a3f0d724-1fbf-45b4-b6e1-3594fbd20788",
+      "name": "Extract from File2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        440,
+        280
+      ],
+      "id": "782bf687-b247-4807-a5ad-ca195aa38bfd",
+      "name": "pass data"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "user_data",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "keyValue": "={{ $json.Metadata.reciever }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3700,
+        720
+      ],
+      "id": "83c3ad10-d8f0-40e7-b5fa-cd9f72d642c8",
+      "name": "Get a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "N5EMFMKO8sQnDJJ2",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{$('Aggregate5').item.json.data[1].Metadata.id}}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        5080,
+        560
+      ],
+      "id": "fdd6c182-53f1-4345-8577-c7c0299ea477",
+      "name": "Mark a message as read",
+      "webhookId": "74a45a50-acb5-435c-a728-1386540d47e3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "9omR2T5rOYJqJYUq",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        280
+      ],
+      "id": "3b4c73cc-1bd2-4e95-b422-8cdb3da24cd4",
+      "name": "pass_through"
+    },
+    {
+      "parameters": {
+        "model": "meta-llama/llama-4-maverick-17b-128e-instruct",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        2760,
+        1200
+      ],
+      "id": "ae4ec32b-86a3-4b72-9123-5506f2502b98",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "IUNpwl8TJdD6I0oj",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "attachment_0",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "root",
+          "mode": "list",
+          "cachedResultName": "/ (Root folder)",
+          "cachedResultUrl": "https://drive.google.com/drive"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        460,
+        -360
+      ],
+      "id": "e3471c89-28a1-48a8-8e72-8aafd4650907",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "4sBtRtbJvUyzLcev",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appQRibCWiCKPDMaq",
+          "mode": "list",
+          "cachedResultName": "CurtleBase",
+          "cachedResultUrl": "https://airtable.com/appQRibCWiCKPDMaq"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblgMXdyCLJmu3fzO",
+          "mode": "list",
+          "cachedResultName": "Email_Summary",
+          "cachedResultUrl": "https://airtable.com/appQRibCWiCKPDMaq/tblgMXdyCLJmu3fzO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json['data-comb'][1].data[1].Metadata.id }}",
+            "email_summary": "={{ $json['data-comb'][1].data[1].Email_Summary }}",
+            "title": "={{ $json['data-comb'][1].data[1].Topic }}",
+            "subject": "={{ $json['data-comb'][1].data[1].Metadata.subject }}",
+            "date": "={{ $json['data-comb'][1].data[1].Metadata.subject }}",
+            "sender": "={{ $json['data-comb'][1].data[1].Metadata.sender }}",
+            "sender_name": "={{ $json['data-comb'][1].data[1].Metadata.sender_name }}",
+            "reciever": "={{ $json['data-comb'][1].data[1].Metadata.reciever }}",
+            "reciever_name": "={{ $json['data-comb'][1].data[1].Metadata.reciever_name }}",
+            "telegram_key": "={{ $json['data-comb'][1].data[0].user_id }}",
+            "category": "={{ $json['data-comb'][1].data[2].category }}",
+            "is_urgent": "={{ true?(urgency=='Urgent'):false }}",
+            "has_document": false
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email_summary",
+              "displayName": "email_summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sender",
+              "displayName": "sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sender_name",
+              "displayName": "sender_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reciever",
+              "displayName": "reciever",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reciever_name",
+              "displayName": "reciever_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "telegram_key",
+              "displayName": "telegram_key",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_urgent",
+              "displayName": "is_urgent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "document",
+              "displayName": "document",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "has_document",
+              "displayName": "has_document",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        4860,
+        680
+      ],
+      "id": "d0048c1d-5089-48fc-9bea-c2ee5f5c97bc",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "uv78PdSvDlXTLSVC",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "user_data",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "keyValue": "={{ $json.reciever }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        320,
+        1120
+      ],
+      "id": "0b1787db-ebe1-46d0-a4c5-fb0f86f91910",
+      "name": "Get a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "N5EMFMKO8sQnDJJ2",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        520,
+        1220
+      ],
+      "id": "bc8bf5c8-6fec-4b3f-b5c3-98eaf2c3ad4d",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        660,
+        1220
+      ],
+      "id": "ec800d6d-3e0c-428b-9ba2-51daceb9da7d",
+      "name": "Aggregate2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        200,
+        -360
+      ],
+      "id": "10da25e9-e1c5-4d47-9b42-0b08997741de",
+      "name": "No Operation, do nothing2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d180f3c8-e194-4f6a-9c6b-6799f8a761cb",
+              "name": "has_binary",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "a26dd0dc-bd2a-415b-bebe-e93d42d47ee0",
+              "name": "link",
+              "value": "\"\"",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        200,
+        -180
+      ],
+      "id": "42d6a6b9-4716-41b1-819a-4c002db9449b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "data-one",
+        "options": {
+          "includeBinaries": true
+        }
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1140,
+        -200
+      ],
+      "id": "c48e9623-814e-4724-8ea7-54594823f9bb",
+      "name": "Aggregate3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d180f3c8-e194-4f6a-9c6b-6799f8a761cb",
+              "name": "has_binary",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "c6efc4f5-9688-4495-b25c-d128b8afa42c",
+              "name": "link",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        680,
+        -360
+      ],
+      "id": "69738744-f48d-41b3-adb0-3e2ff14727fa",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        940,
+        -200
+      ],
+      "id": "2abce3ef-fff5-4564-9fcb-3ad84682093c",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4280,
+        560
+      ],
+      "id": "a9df65ff-49c8-4dac-a3eb-082ffe496309",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "data-comb",
+        "options": {
+          "includeBinaries": true
+        }
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        4440,
+        560
+      ],
+      "id": "245cda46-42f6-4b59-a1f3-96ea32ed9fd0",
+      "name": "Aggregate6"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        540
+      ],
+      "id": "20096c82-e446-410a-8a0a-93df56fd2c9c",
+      "name": "pass data1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f5331a29-9b82-4eba-a4a7-a15106e8ef9e",
+              "leftValue": "={{ $json['data-comb'][0]['data-one'][0].has_binary }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4620,
+        560
+      ],
+      "id": "bcadc3e6-2229-4f77-b8fe-c5e3cc2b2f5c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appQRibCWiCKPDMaq",
+          "mode": "list",
+          "cachedResultName": "CurtleBase",
+          "cachedResultUrl": "https://airtable.com/appQRibCWiCKPDMaq"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblgMXdyCLJmu3fzO",
+          "mode": "list",
+          "cachedResultName": "Email_Summary",
+          "cachedResultUrl": "https://airtable.com/appQRibCWiCKPDMaq/tblgMXdyCLJmu3fzO"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json['data-comb'][1].data[1].Metadata.id }}",
+            "email_summary": "={{ $json['data-comb'][1].data[1].Email_Summary }}",
+            "title": "={{ $json['data-comb'][1].data[1].Topic }}",
+            "subject": "={{ $json['data-comb'][1].data[1].Metadata.subject }}",
+            "date": "={{ $json['data-comb'][1].data[1].Metadata.date }}",
+            "sender": "={{ $json['data-comb'][1].data[1].Metadata.sender }}",
+            "sender_name": "={{ $json['data-comb'][1].data[1].Metadata.sender_name }}",
+            "reciever": "={{ $json['data-comb'][1].data[1].Metadata.reciever }}",
+            "reciever_name": "={{ $json['data-comb'][1].data[1].Metadata.reciever_name }}",
+            "telegram_key": "={{ $json['data-comb'][1].data[0].user_id }}",
+            "category": "={{ $json['data-comb'][1].data[2].category }}",
+            "is_urgent": "={{ true?(urgency=='Urgent'):false }}",
+            "has_document": true
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email_summary",
+              "displayName": "email_summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sender",
+              "displayName": "sender",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sender_name",
+              "displayName": "sender_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reciever",
+              "displayName": "reciever",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reciever_name",
+              "displayName": "reciever_name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "telegram_key",
+              "displayName": "telegram_key",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "is_urgent",
+              "displayName": "is_urgent",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "document",
+              "displayName": "document",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "has_document",
+              "displayName": "has_document",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        4860,
+        440
+      ],
+      "id": "871f7ac2-d6b8-4e63-abe9-73a2c93b7db6",
+      "name": "Create a record1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "uv78PdSvDlXTLSVC",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "meta-llama/llama-4-maverick-17b-128e-instruct",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        900,
+        1400
+      ],
+      "id": "57c9e356-597e-4992-bc6c-f987efd93211",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "IUNpwl8TJdD6I0oj",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Email Summarization Chain": {
+      "main": [
+        [
+          {
+            "node": "Parse email analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse email analysis": {
+      "main": [
+        [
+          {
+            "node": "Email summary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "PDF Analyzer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Append All The Summaries",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Final Summary Generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Final Summary Generation",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contain attachments?": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Attachments",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTML to MD",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "No Operation, do nothing2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTML to MD",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDF Analyzer": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map image summaries": {
+      "main": [
+        [
+          {
+            "node": "Append All The Summaries",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Email summary": {
+      "main": [
+        [
+          {
+            "node": "Append All The Summaries",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Gmail Fetch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Fetch": {
+      "main": [
+        [
+          {
+            "node": "Contain attachments?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Attachments": {
+      "main": [
+        [
+          {
+            "node": "image/pdf",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "image/pdf": {
+      "main": [
+        [
+          {
+            "node": "PDF Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from File2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDF Extraction": {
+      "main": [
+        [
+          {
+            "node": "pass data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deepseek r1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "PDF Analyzer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append All The Summaries": {
+      "main": [
+        [
+          {
+            "node": "Parse Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Data": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Summary Generation": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tags Generator": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTML to MD": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Data Processing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Map image summaries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Tags Generator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Tags Generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Processing1": {
+      "main": [
+        [
+          {
+            "node": "Data Processing2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get a row1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Data Processing2": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Enhanced Default Data Loader1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enhanced Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate4": {
+      "main": [
+        [
+          {
+            "node": "Data Processing3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Processing3": {
+      "main": [
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Aggregate5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate5": {
+      "main": [
+        [
+          {
+            "node": "Data Processing",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Data Processing": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing1": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "pass data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "pass data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File2": {
+      "main": [
+        [
+          {
+            "node": "pass data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "pass data": {
+      "main": [
+        [
+          {
+            "node": "PDF Analyzer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "pass_through",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark a message as read": {
+      "main": [
+        []
+      ]
+    },
+    "pass_through": {
+      "main": [
+        [
+          {
+            "node": "Append All The Summaries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Tags Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "Mark a message as read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Email Summarization Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing2": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Aggregate3": {
+      "main": [
+        [
+          {
+            "node": "pass data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Aggregate3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "Aggregate6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate6": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "pass data1": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create a record1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record1": {
+      "main": [
+        [
+          {
+            "node": "Mark a message as read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Summarization Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "OpenRouter Chat Model1": [
+      {
+        "isArtificialRecoveredEventItem": true
+      }
+    ],
+    "Gmail Trigger": [
+      {
+        "isArtificialRecoveredEventItem": true
+      }
+    ]
+  },
+  "meta": {
+    "instanceId": "93a57ec538b33e4266db3cf3999c1a44d55a10d31d3652892046b38f2e1c35ae"
+  }
+}
