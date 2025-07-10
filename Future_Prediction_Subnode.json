@@ -1,0 +1,376 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "mail_body"
+            },
+            {
+              "name": "mail_sender"
+            },
+            {
+              "name": "tel_id"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        780,
+        -260
+      ],
+      "id": "a5d6fa5f-71ce-4d62-9cb0-b0a3413ad44c",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Please Summarise this -\n\nCurrent Email:\n{{ $('When Executed by Another Workflow').item.json.mail_body }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an intelligent email retrieval and summarization agent.\n\nYour task is to:\n\nIdentify and select any emails in the thread or related correspondence that are relevant to understanding the current situation.\n\nSummarize each relevant email clearly and concisely in 1–2 sentences.\n\nInput:\n\nCurrent Email:\n{{ $('When Executed by Another Workflow').item.json.mail_body }}\n\nPrevious Threads:\n{{ $json.result.join(\"/n\") }}\n\nEmail Sender:\n{{ $('When Executed by Another Workflow').item.json.mail_sender }}\nFull Email Thread or Archive:\n\n\nInstructions:\n\nReview all prior emails and select only those that are directly relevant to understanding or predicting the next likely step in this conversation.\n\nFor each relevant email, generate a clear 1–2 sentence summary.\n\nPresent your output as a JSON array of summaries."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        1700,
+        -260
+      ],
+      "id": "e09805b8-088f-46dd-9a70-b95e694e8f8b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"relevant_summaries\": [\n    \"Summary of relevant email 1.\",\n    \"Summary of relevant email 2.\",\n    \"... etc.\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1920,
+        -60
+      ],
+      "id": "5687fdb4-e3c7-492c-aa1e-466915faa3e4",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2040,
+        -260
+      ],
+      "id": "94c1a888-50b4-4a97-8ad3-2bcc79e56b9c",
+      "name": "Pass Data"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Current Email:\n {{ $('When Executed by Another Workflow').item.json.mail_body }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an intelligent email assistant, equipped with a think tool that enables you to perform detailed, step-by-step analysis and reasoning. Your task is to proactively analyze the provided email context, predict the most likely next event in the conversation, estimate your confidence in this prediction, and recommend a clear, actionable step for the user. You must use the think tool automatically to conduct a thorough analysis without requiring explicit user consent, ensuring a comprehensive understanding of the context.\n\nInputs:\nRelevant Prior Summaries:\n{{ $json.output.relevant_summaries.join('\\n') }}\n\n(If no summaries are provided, rely solely on the current email and use the think tool to infer relevant context based on typical email communication patterns.)\n\nCurrent Email:\n{{ $('When Executed by Another Workflow').item.json.mail_body }}\n\n(Assume the email contains details such as sender, subject, content, and any attachments or links unless otherwise specified.)\nInstructions:\n\nDetailed Analysis: Automatically engage the think tool to deeply analyze the prior summaries and current email. Break down the content by identifying:\nKey themes, topics, or objectives.\nSender’s intent, tone, and urgency.\nExplicit or implied requests, deadlines, or expectations.\nRelationships or patterns between the current email and prior summaries (if available).\nContextual cues, such as formal/informal language, professional/personal context, or recurring issues.\nPrediction: Using the insights from your analysis, predict the most likely next event in the email conversation (e.g., a reply from the user, a follow-up from the sender, a meeting request, or escalation). Ensure the prediction is specific, grounded in the analyzed context, and accounts for likely human behavior in email communication.\n\nConfidence Score: Assign a confidence score (0–100%) to your prediction, reflecting the strength of your analysis. Use the think tool to justify the score by weighing the clarity of the email context, consistency of patterns, and any assumptions made due to missing information.\nRecommendation: Provide one concrete, actionable step the user should take to prepare for the predicted next event. The action must be practical, specific, and directly tied to the prediction, addressing the sender’s needs or the conversation’s trajectory.\nOutput Format:\n\nPredicted Next Event: [Describe the most likely next event in 1–2 sentences, based on detailed analysis.]\nConfidence Score: [Provide a percentage (0–100%) with a brief justification summarizing key factors from your analysis.]\nRecommended Action: [State one clear, actionable step the user should take to prepare for the predicted event.]\nAdditional Guidelines:\n\nAutomatic Think Tool Usage: Always use the think tool to perform a detailed, step-by-step analysis of the inputs, even without explicit user consent. Document your reasoning process internally to ensure the prediction and recommendation are well-supported, but keep the output concise and user-focused.\nHandling Incomplete Inputs: If prior summaries or the current email lack sufficient detail, use the think tool to make reasonable assumptions based on common email communication patterns (e.g., professional norms, typical response times). Reflect any assumptions in the confidence score justification.\nContextual Depth: Consider factors such as the sender’s role (e.g., colleague, client, supervisor), the email’s urgency, and the conversation’s history to enrich your analysis.\n\nNo Fabrication: Do not invent details not present in the inputs. If critical information is missing, lower the confidence score and recommend a general but relevant action (e.g., seeking clarification).\nTool Transparency: Do not mention the think tool or internal reasoning process in the output unless the user explicitly asks about them.\n\nDate and Time Awareness: Use date and time tool"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        2260,
+        -260
+      ],
+      "id": "33cb4b34-e679-4930-807d-f0b0b47dd9cb",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        2320,
+        -40
+      ],
+      "id": "af466c71-6765-4f41-92a5-1e3b2b383941",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"prediction\": \"\",\n  \"confidence\": \"\",\n  \"recommended_action\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2600,
+        -40
+      ],
+      "id": "b96d5690-e80e-49f1-8150-be28a02460bb",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "model": "deepseek-r1-distill-llama-70b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        2200,
+        -40
+      ],
+      "id": "062fba3e-3cff-4477-9355-2fc09a0c506b",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "IUNpwl8TJdD6I0oj",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTimeTool",
+      "typeVersion": 2,
+      "position": [
+        2440,
+        -40
+      ],
+      "id": "989b8703-13e0-4a01-abf6-9bc01c8070cd",
+      "name": "Date & Time"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appQRibCWiCKPDMaq",
+          "mode": "list",
+          "cachedResultName": "CurtleBase",
+          "cachedResultUrl": "https://airtable.com/appQRibCWiCKPDMaq"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblgMXdyCLJmu3fzO",
+          "mode": "list",
+          "cachedResultName": "Email_Summary",
+          "cachedResultUrl": "https://airtable.com/appQRibCWiCKPDMaq/tblgMXdyCLJmu3fzO"
+        },
+        "filterByFormula": "=AND({sender}='{{ $json.mail_sender }}', {telegram_key}='{{ $json.tel_id }}')",
+        "options": {
+          "fields": [
+            "email_summary",
+            "title",
+            "subject",
+            "date",
+            "sender",
+            "is_urgent"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1000,
+        -260
+      ],
+      "id": "ab404a2e-9ad7-4aca-8a2f-62aca9b7c5e9",
+      "name": "Search records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "uv78PdSvDlXTLSVC",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1220,
+        -260
+      ],
+      "id": "5a5fe6db-562f-413e-8a19-6c7deaeb484c",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.first().json.data.map((item) => item);\nconst result = items.map((item, index) => {\n  return `${index + 1}:\\n ${JSON.stringify(item)}`;\n});\n\nreturn { result };\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        -260
+      ],
+      "id": "50e98db4-e279-4f91-9949-bd3b113b23ce",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "model": "meta-llama/llama-3-70b-instruct",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1660,
+        -60
+      ],
+      "id": "695ac324-69a3-40a1-9166-7bc4e59d2491",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "qd1qqOWZA6w5iyuQ",
+          "name": "OpenRouter account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Pass Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pass Data": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "93a57ec538b33e4266db3cf3999c1a44d55a10d31d3652892046b38f2e1c35ae"
+  }
+}
