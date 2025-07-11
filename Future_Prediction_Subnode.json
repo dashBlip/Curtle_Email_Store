@@ -8,7 +8,7 @@
               "name": "mail_body"
             },
             {
-              "name": "mail_sender"
+              "name": "sender_mail"
             },
             {
               "name": "tel_id"
@@ -19,8 +19,8 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
       "position": [
-        780,
-        -260
+        760,
+        -160
       ],
       "id": "a5d6fa5f-71ce-4d62-9cb0-b0a3413ad44c",
       "name": "When Executed by Another Workflow"
@@ -31,13 +31,13 @@
         "text": "=Please Summarise this -\n\nCurrent Email:\n{{ $('When Executed by Another Workflow').item.json.mail_body }}",
         "hasOutputParser": true,
         "options": {
-          "systemMessage": "=You are an intelligent email retrieval and summarization agent.\n\nYour task is to:\n\nIdentify and select any emails in the thread or related correspondence that are relevant to understanding the current situation.\n\nSummarize each relevant email clearly and concisely in 1–2 sentences.\n\nInput:\n\nCurrent Email:\n{{ $('When Executed by Another Workflow').item.json.mail_body }}\n\nPrevious Threads:\n{{ $json.result.join(\"/n\") }}\n\nEmail Sender:\n{{ $('When Executed by Another Workflow').item.json.mail_sender }}\nFull Email Thread or Archive:\n\n\nInstructions:\n\nReview all prior emails and select only those that are directly relevant to understanding or predicting the next likely step in this conversation.\n\nFor each relevant email, generate a clear 1–2 sentence summary.\n\nPresent your output as a JSON array of summaries."
+          "systemMessage": "=You are an intelligent email retrieval and summarization agent.\n\nYour task is to:\n\nIdentify and select any emails in the thread or related correspondence that are relevant to understanding the current situation.\n\nSummarize each relevant email clearly and concisely in 1–2 sentences.\n\nInput:\n\nCurrent Email:\n{{ $('When Executed by Another Workflow').item.json.mail_body }}\n\nPrevious Threads:\n{{ $json.result.join(\"/n\") }}\n\nEmail Sender:\n{{ $('When Executed by Another Workflow').item.json.sender_mail }}\n\nInstructions:\n\nReview all prior emails and select only those that are directly relevant to understanding or predicting the next likely step in this conversation.\n\nFor each relevant email, generate a clear 1–2 sentence summary.\n\nPresent your output as a JSON array of summaries."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
       "position": [
-        1700,
+        1920,
         -260
       ],
       "id": "e09805b8-088f-46dd-9a70-b95e694e8f8b",
@@ -50,7 +50,7 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        1920,
+        2140,
         -60
       ],
       "id": "5687fdb4-e3c7-492c-aa1e-466915faa3e4",
@@ -61,7 +61,7 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        2040,
+        2260,
         -260
       ],
       "id": "94c1a888-50b4-4a97-8ad3-2bcc79e56b9c",
@@ -79,7 +79,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
       "position": [
-        2260,
+        2480,
         -260
       ],
       "id": "33cb4b34-e679-4930-807d-f0b0b47dd9cb",
@@ -90,7 +90,7 @@
       "type": "@n8n/n8n-nodes-langchain.toolThink",
       "typeVersion": 1,
       "position": [
-        2320,
+        2780,
         -40
       ],
       "id": "af466c71-6765-4f41-92a5-1e3b2b383941",
@@ -103,7 +103,7 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        2600,
+        2900,
         -40
       ],
       "id": "b96d5690-e80e-49f1-8150-be28a02460bb",
@@ -111,13 +111,13 @@
     },
     {
       "parameters": {
-        "model": "deepseek-r1-distill-llama-70b",
+        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        2200,
+        2420,
         -40
       ],
       "id": "062fba3e-3cff-4477-9355-2fc09a0c506b",
@@ -136,7 +136,7 @@
       "type": "n8n-nodes-base.dateTimeTool",
       "typeVersion": 2,
       "position": [
-        2440,
+        2660,
         -40
       ],
       "id": "989b8703-13e0-4a01-abf6-9bc01c8070cd",
@@ -159,7 +159,7 @@
           "cachedResultName": "Email_Summary",
           "cachedResultUrl": "https://airtable.com/appQRibCWiCKPDMaq/tblgMXdyCLJmu3fzO"
         },
-        "filterByFormula": "=AND({sender}='{{ $json.mail_sender }}', {telegram_key}='{{ $json.tel_id }}')",
+        "filterByFormula": "=AND({sender}='{{ $json.sender_mail }}', {telegram_key}='{{ $json.tel_id }}')",
         "options": {
           "fields": [
             "email_summary",
@@ -174,11 +174,12 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        1000,
-        -260
+        980,
+        -160
       ],
       "id": "ab404a2e-9ad7-4aca-8a2f-62aca9b7c5e9",
       "name": "Search records",
+      "alwaysOutputData": true,
       "credentials": {
         "airtableTokenApi": {
           "id": "uv78PdSvDlXTLSVC",
@@ -194,7 +195,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        1220,
+        1440,
         -260
       ],
       "id": "5a5fe6db-562f-413e-8a19-6c7deaeb484c",
@@ -207,7 +208,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1440,
+        1660,
         -260
       ],
       "id": "50e98db4-e279-4f91-9949-bd3b113b23ce",
@@ -221,7 +222,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        1660,
+        1880,
         -60
       ],
       "id": "695ac324-69a3-40a1-9166-7bc4e59d2491",
@@ -232,6 +233,55 @@
           "name": "OpenRouter account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "470fb74b-9d1c-4b3d-a8f1-95a3fdf4ad2e",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        -160
+      ],
+      "id": "b9a77485-fd6c-4912-94af-8d01fad37a61",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"prediction\": \"Lack of data\",\n  \"confidence\": \"Lack of data\",\n  \"recommended_action\": \"Lack of data\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        -60
+      ],
+      "id": "2ee3b1a2-a145-43d6-9278-2b4942b3e91c",
+      "name": "Edit Fields"
     }
   ],
   "connections": {
@@ -327,7 +377,7 @@
       "main": [
         [
           {
-            "node": "Aggregate",
+            "node": "If",
             "type": "main",
             "index": 0
           }
@@ -362,6 +412,24 @@
           {
             "node": "AI Agent",
             "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
             "index": 0
           }
         ]
