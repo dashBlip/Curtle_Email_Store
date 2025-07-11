@@ -6,7 +6,7 @@
           "summarizationMethodAndPrompts": {
             "values": {
               "combineMapPrompt": "=## Email Summarization System Prompt\n\nYou are a specialized AI assistant focused exclusively on creating precise, concise summaries of emails. Your task is to analyze the complete email text provided as input and produce a clear, comprehensive summary that captures all essential information in a cohesive narrative format.\n\n### Your responsibilities:\n\n1. Extract and summarize the main topic and purpose of the email\n2. Identify key points, requests, deadlines, or action items mentioned\n3. Preserve critical details like dates, times, locations, and names\n4. Maintain the original tone and urgency level of the message\n5. Organize information in order of importance\n6. Remove unnecessary pleasantries, redundancies, and filler content\n\n### Summary format:\n\n- Begin with a one-sentence overview of the email's main purpose\n- Present all key information in a cohesive paragraph format (no bullet points)\n- Follow a logical flow from most to least important information\n- Include any critical deadlines, requests, or action items within the narrative\n- Keep the summary to 100 words max\n- Use clear, straightforward language with appropriate transitions between ideas\n- Preserve the original intent and meaning without introducing new information\n\n### What to exclude:\n\n- Greetings and sign-offs\n- Redundant information\n- Minor details that don't affect the main message\n- Your own opinions or interpretations\n- Information not explicitly stated in the email\n\nThe email text to summarize is:\n{{ $json.data[1].text }}",
-              "prompt": "=Analyze the following email and perform two tasks:\n\n1. Classify the email into one of these categories: Work, Personal, Spam, Promotions, Other.\n2. Classify the email into one of these Urgency levels: {{ $json.data[0].tags.join() }}\n\n\n3. Provide a concise summary of the email in max 100 words.\n\nPresent your response in this format:\n\nCategory: [chosen category]\nSummary: [your summary]\nUrgency-Level: [chosen Urgency levels]\n\nThe email text is:\n\"{{ $json.data[1].text }}\""
+              "prompt": "=Analyze the following email and perform two tasks:\n\n1. Classify the email into one of these categories:\n#schema of categories - category-name (description if applicable)\n## In response give category-name only, not description.\n\n{{ $json.data[0].tags.join() }}, other (when no one matches).\n\n2. Classify the email into one of these Urgency levels: Urgent, Not-Urgent\n\n\n3. Provide a concise summary of the email in max 100 words.\n\nPresent your response in this format:\n\nCategory: [chosen category]\nSummary: [your summary]\nUrgency-Level: [chosen Urgency levels]\n\nThe email text is:\n\"{{ $json.data[1].text }}\""
             }
           }
         }
@@ -15,7 +15,7 @@
       "name": "Email Summarization Chain",
       "type": "@n8n/n8n-nodes-langchain.chainSummarization",
       "position": [
-        820,
+        1040,
         1220
       ],
       "typeVersion": 2
@@ -28,7 +28,7 @@
       "name": "Parse email analysis",
       "type": "n8n-nodes-base.code",
       "position": [
-        1120,
+        1340,
         1220
       ],
       "typeVersion": 2
@@ -43,7 +43,7 @@
       "name": "Structured Output Parser",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "position": [
-        800,
+        1020,
         640
       ],
       "typeVersion": 1.2
@@ -57,7 +57,7 @@
       "name": "Split Out",
       "type": "n8n-nodes-base.splitOut",
       "position": [
-        1020,
+        1240,
         480
       ],
       "typeVersion": 1
@@ -77,21 +77,23 @@
       "name": "Aggregate",
       "type": "n8n-nodes-base.aggregate",
       "position": [
-        1880,
+        2100,
         880
       ],
       "typeVersion": 1
     },
     {
       "parameters": {
-        "model": "meta-llama/llama-4-maverick:free",
-        "options": {}
+        "model": "featherless/qwerky-72b:free",
+        "options": {
+          "maxRetries": 3
+        }
       },
       "id": "85756454-69dc-497b-b826-09de46e40da3",
       "name": "OpenRouter Chat Model1",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "position": [
-        2060,
+        2280,
         880
       ],
       "typeVersion": 1,
@@ -131,7 +133,7 @@
       "name": "Contain attachments?",
       "type": "n8n-nodes-base.if",
       "position": [
-        -660,
+        -440,
         840
       ],
       "typeVersion": 2.2
@@ -146,7 +148,7 @@
       "name": "PDF Analyzer",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "position": [
-        680,
+        900,
         480
       ],
       "typeVersion": 1.5
@@ -169,7 +171,7 @@
       "name": "Map image summaries",
       "type": "n8n-nodes-base.set",
       "position": [
-        440,
+        660,
         880
       ],
       "typeVersion": 3.4
@@ -192,7 +194,7 @@
       "name": "Email summary",
       "type": "n8n-nodes-base.set",
       "position": [
-        1340,
+        1560,
         1220
       ],
       "typeVersion": 3.4
@@ -211,7 +213,7 @@
       "type": "n8n-nodes-base.gmailTrigger",
       "typeVersion": 1.2,
       "position": [
-        -1020,
+        -1160,
         840
       ],
       "id": "41cf9ff2-df27-434f-96b9-e4821f126ab1",
@@ -225,7 +227,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        940,
+        1160,
         760
       ],
       "id": "03301640-eb7e-495b-a0c9-f649456b98f4",
@@ -257,7 +259,7 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        -840,
+        -960,
         840
       ],
       "id": "cad0ae41-e083-4c56-b3c5-bdf89b503c14",
@@ -278,7 +280,7 @@
       "name": "Retrieve Attachments",
       "type": "n8n-nodes-base.code",
       "position": [
-        -320,
+        -100,
         820
       ],
       "typeVersion": 2
@@ -419,7 +421,7 @@
       "name": "image/pdf",
       "type": "n8n-nodes-base.switch",
       "position": [
-        -160,
+        60,
         780
       ],
       "typeVersion": 3.2
@@ -433,7 +435,7 @@
       "name": "PDF Extraction",
       "type": "n8n-nodes-base.extractFromFile",
       "position": [
-        200,
+        420,
         0
       ],
       "typeVersion": 1
@@ -447,7 +449,7 @@
       "name": "Deepseek r1",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "position": [
-        680,
+        900,
         640
       ],
       "typeVersion": 1,
@@ -466,7 +468,7 @@
       "name": "Append All The Summaries",
       "type": "n8n-nodes-base.merge",
       "position": [
-        1520,
+        1740,
         860
       ],
       "typeVersion": 3
@@ -479,7 +481,7 @@
       "name": "Parse Data",
       "type": "n8n-nodes-base.code",
       "position": [
-        1700,
+        1920,
         880
       ],
       "typeVersion": 2
@@ -491,7 +493,7 @@
         "messages": {
           "messageValues": [
             {
-              "message": "=## Comprehensive Email Analysis System Prompt\n\nYou are a specialized AI assistant tasked with creating a unified, concise summary of an email and all its attachments. Your input includes a summary of the email text, summaries of any images, and summaries of any PDF attachments. Your goal is to synthesize all this information into a single coherent summary that captures the essential message and purpose. \n\n### Your responsibilities:\n\n1. Identify the overarching theme or purpose connecting the email and its attachments\n2. Recognize relationships between the email content and the attached materials\n3. Extract and consolidate the most critical information from all sources\n4. Maintain proper context when combining information from different sources\n5. Prioritize information based on relevance to the email's main purpose\n6. Create a unified narrative that flows logically between email content and attachments\n\n### Input structure:\n- Email summary: A summary of the main email text\n- Image descriptions: Summaries of any images attached to the email\n- PDF summaries: Condensed versions of any PDF documents attached\n\n### Output format:\n\n- Provide your summary in plain text only\n- Begin with a one-sentence statement of the email's overall purpose and theme\n- Present a unified narrative that integrates information from the email and all attachments\n- Organize information by importance and relevance, not by source\n- Keep the final summary concise (100 words maximum) while including all essential information\n- Use clear transitions to maintain coherence when moving between different information sources\n- Preserve the original intent and tone of the communication\n\n### What to include:\n\n- The main topic and purpose of the communication\n- Key points from both the email and attachments\n- Critical requests, deadlines, or action items\n- Essential details like dates, figures, or specific references\n- Contextual information that clarifies the purpose of attachments\n\n### What to exclude:\n\n- Redundant information repeated across multiple sources\n- Minor details that don't contribute to understanding the main message\n- Excessive descriptions of attachments beyond their relevance to the email's purpose\n- Your own interpretations beyond what's supported by the input materials"
+              "message": "=## Comprehensive Email Analysis System Prompt\n\nYou are a specialized AI assistant tasked with creating a unified, concise summary of an email and all its attachments. Your input includes a summary of the email text, summaries of any images, and summaries of any PDF attachments. Your goal is to synthesize all this information into a single coherent summary that captures the essential message and purpose. \n\n### Your responsibilities:\n\n1. Identify the overarching theme or purpose connecting the email and its attachments\n2. Recognize relationships between the email content and the attached materials\n3. Extract and consolidate the most critical information from all sources\n4. Maintain proper context when combining information from different sources\n5. Prioritize information based on relevance to the email's main purpose\n6. Create a unified narrative that flows logically between email content and attachments\n\n### Input structure:\n- Email summary: A summary of the main email text\n- Image descriptions: Summaries of any images attached to the email\n- PDF summaries: Condensed versions of any PDF documents attached\n\n### Output format:\n\n- Provide your summary in plain text only\n- Begin with a one-sentence statement of the email's overall purpose and theme\n- Present a unified narrative that integrates information from the email and all attachments\n- Organize information by importance and relevance, not by source\n- Keep the final summary concise (100 words maximum) while including all essential information\n- Use clear transitions to maintain coherence when moving between different information sources\n- Preserve the original intent and tone of the communication\n- Single Output only\n\n### What to include:\n\n- The main topic and purpose of the communication\n- Key points from both the email and attachments\n- Critical requests, deadlines, or action items\n- Essential details like dates, figures, or specific references\n- Contextual information that clarifies the purpose of attachments\n\n### What to exclude:\n\n- Redundant information repeated across multiple sources\n- Minor details that don't contribute to understanding the main message\n- Excessive descriptions of attachments beyond their relevance to the email's purpose\n- Your own interpretations beyond what's supported by the input materials"
             }
           ]
         }
@@ -500,10 +502,12 @@
       "name": "Final Summary Generation",
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "position": [
-        2080,
+        2300,
         700
       ],
-      "typeVersion": 1.5
+      "typeVersion": 1.5,
+      "retryOnFail": false,
+      "executeOnce": true
     },
     {
       "parameters": {
@@ -515,7 +519,7 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
       "position": [
-        2840,
+        3060,
         1040
       ],
       "id": "5847824a-b9ba-4e2b-ae93-751460926c26",
@@ -531,7 +535,7 @@
       "name": "HTML to MD",
       "type": "n8n-nodes-base.markdown",
       "position": [
-        -320,
+        -100,
         1240
       ],
       "typeVersion": 1
@@ -541,7 +545,7 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        -100,
+        120,
         1240
       ],
       "id": "8a5cf979-ba43-4554-9e85-9bb5ba749a06",
@@ -552,12 +556,12 @@
       "parameters": {
         "content": "### Fetching The Gmail & Attachments\n",
         "height": 240,
-        "width": 640,
+        "width": 780,
         "color": 5
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1080,
+        -1220,
         780
       ],
       "typeVersion": 1,
@@ -581,7 +585,7 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        200,
+        420,
         880
       ],
       "id": "7255604d-5d79-4c9d-9004-40c4a9761759",
@@ -598,7 +602,7 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        1340,
+        1560,
         1580
       ],
       "id": "0f7730d5-19e6-4731-b354-416676c64de5",
@@ -624,7 +628,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        2640,
+        2860,
         880
       ],
       "id": "f6b2ccdc-233c-4b14-9b85-c2b89a0a4d07",
@@ -635,7 +639,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        2460,
+        2680,
         880
       ],
       "id": "5f263134-70dc-43da-bccd-5da412abee90",
@@ -648,7 +652,7 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        2920,
+        3140,
         1200
       ],
       "id": "b7645891-ce37-45e2-97e2-66de7eac0dd5",
@@ -659,7 +663,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        3160,
+        3380,
         900
       ],
       "id": "0c79877e-5800-421c-845f-dc2281674c5f",
@@ -724,7 +728,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        80,
+        300,
         1240
       ],
       "id": "a0395065-7d76-41fe-b3dd-8a89dd4589cf",
@@ -747,7 +751,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        320,
+        540,
         1580
       ],
       "id": "dbd8a844-11f9-4a58-b0da-6e330b6dff8b",
@@ -764,8 +768,8 @@
       "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
       "typeVersion": 1,
       "position": [
-        4740,
-        1200
+        6520,
+        1440
       ],
       "id": "bf55bd3e-acc5-4f74-9809-c43a35bc1b7a",
       "name": "Recursive Character Text Splitter"
@@ -822,8 +826,48 @@
                 "value": "={{ $('Get a row').item.json.user_id }}"
               },
               {
-                "name": "document_involved",
-                "value": "={{ $('pas')  }}"
+                "name": "prediction",
+                "value": "={{ $json.data[0].output.prediction }}"
+              },
+              {
+                "name": "prediction_confidence",
+                "value": "={{ $json.data[0].output.confidence }}"
+              },
+              {
+                "name": "prediction_recommended_action",
+                "value": "={{ $json.data[0].output.recommended_action }}"
+              },
+              {
+                "name": "parallel_positive_reply_prediction",
+                "value": "={{ $json.data[2].output.positive_reply.prediction }}"
+              },
+              {
+                "name": "parallel_positive_reply_confidence",
+                "value": "={{ $json.data[2].output.positive_reply.confidence }}"
+              },
+              {
+                "name": "parallel_negative_reply_prediction",
+                "value": "={{ $json.data[2].output.negative_reply.prediction }}"
+              },
+              {
+                "name": "parallel_negative_reply_confidence",
+                "value": "={{ $json.data[2].output.negative_reply.confidence }}"
+              },
+              {
+                "name": "parallel_no_reply_prediction",
+                "value": "={{ $json.data[2].output.no_reply.prediction }}"
+              },
+              {
+                "name": "parallel_no_reply_confidence",
+                "value": "={{ $json.data[2].output.no_reply.confidence }}"
+              },
+              {
+                "name": "parallel_recommended_strategy",
+                "value": "={{ $json.data[2].output.recommended_strategy }}"
+              },
+              {
+                "name": "parallel_rationale",
+                "value": "={{ $json.data[2].output.rationale }}"
               }
             ]
           }
@@ -834,8 +878,8 @@
       "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
       "typeVersion": 1,
       "position": [
-        4640,
-        1060
+        6420,
+        1300
       ]
     },
     {
@@ -845,8 +889,8 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "typeVersion": 1.2,
       "position": [
-        4420,
-        1060
+        6200,
+        1300
       ],
       "id": "8cba35f1-181d-4b7c-b4ec-4af32c71bc0f",
       "name": "Embeddings OpenAI1",
@@ -871,8 +915,8 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1.3,
       "position": [
-        4460,
-        900
+        6240,
+        1140
       ],
       "id": "282a36dd-2b98-4a30-9bfa-d0301cb1999d",
       "name": "Pinecone Vector Store1",
@@ -906,7 +950,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        3320,
+        3540,
         900
       ],
       "id": "605ebc54-e82f-4b75-a183-6b310a56b650",
@@ -947,7 +991,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3500,
+        3720,
         900
       ],
       "id": "ab034040-879e-4ad9-9810-9750a9c81e3e",
@@ -960,7 +1004,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        3880,
+        4100,
         900
       ],
       "id": "af400aa6-ecaa-4e94-810a-1d48efac537d",
@@ -976,7 +1020,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        4060,
+        4280,
         740
       ],
       "id": "496ff1cd-b71b-44f7-a9f2-65e1873b8e65",
@@ -1017,8 +1061,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        4280,
-        900
+        4580,
+        1160
       ],
       "id": "8f6f5f63-b445-4b56-82d9-80b5cba22104",
       "name": "Data Processing"
@@ -1028,7 +1072,7 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1340,
+        1560,
         1420
       ],
       "id": "a59cec3d-200b-457c-b221-b4e21c4e1a2e",
@@ -1039,7 +1083,7 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        3300,
+        3520,
         1420
       ],
       "id": "90832503-6200-41db-b32b-de1d243b321c",
@@ -1053,7 +1097,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
       "position": [
-        200,
+        420,
         540
       ],
       "id": "63974d3b-8de2-424f-8d72-4ac5bd2978b7",
@@ -1067,7 +1111,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
       "position": [
-        200,
+        420,
         360
       ],
       "id": "9c9f28ad-abed-4df7-bcb7-e19046431631",
@@ -1081,7 +1125,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
       "position": [
-        200,
+        420,
         180
       ],
       "id": "a3f0d724-1fbf-45b4-b6e1-3594fbd20788",
@@ -1092,7 +1136,7 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        440,
+        660,
         280
       ],
       "id": "782bf687-b247-4807-a5ad-ca195aa38bfd",
@@ -1114,7 +1158,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        3700,
+        3920,
         720
       ],
       "id": "83c3ad10-d8f0-40e7-b5fa-cd9f72d642c8",
@@ -1134,8 +1178,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        5080,
-        560
+        5300,
+        400
       ],
       "id": "fdd6c182-53f1-4345-8577-c7c0299ea477",
       "name": "Mark a message as read",
@@ -1152,7 +1196,7 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1020,
+        1240,
         280
       ],
       "id": "3b4c73cc-1bd2-4e95-b422-8cdb3da24cd4",
@@ -1166,7 +1210,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        2760,
+        2980,
         1200
       ],
       "id": "ae4ec32b-86a3-4b72-9123-5506f2502b98",
@@ -1198,7 +1242,7 @@
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        460,
+        680,
         -360
       ],
       "id": "e3471c89-28a1-48a8-8e72-8aafd4650907",
@@ -1234,7 +1278,7 @@
             "email_summary": "={{ $json['data-comb'][1].data[1].Email_Summary }}",
             "title": "={{ $json['data-comb'][1].data[1].Topic }}",
             "subject": "={{ $json['data-comb'][1].data[1].Metadata.subject }}",
-            "date": "={{ $json['data-comb'][1].data[1].Metadata.subject }}",
+            "date": "={{ $json['data-comb'][1].data[1].Metadata.date }}",
             "sender": "={{ $json['data-comb'][1].data[1].Metadata.sender }}",
             "sender_name": "={{ $json['data-comb'][1].data[1].Metadata.sender_name }}",
             "reciever": "={{ $json['data-comb'][1].data[1].Metadata.reciever }}",
@@ -1411,8 +1455,8 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        4860,
-        680
+        5080,
+        520
       ],
       "id": "d0048c1d-5089-48fc-9bea-c2ee5f5c97bc",
       "name": "Create a record",
@@ -1439,7 +1483,7 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        320,
+        540,
         1120
       ],
       "id": "0b1787db-ebe1-46d0-a4c5-fb0f86f91910",
@@ -1456,7 +1500,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        520,
+        740,
         1220
       ],
       "id": "bc8bf5c8-6fec-4b3f-b5c3-98eaf2c3ad4d",
@@ -1470,7 +1514,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        660,
+        880,
         1220
       ],
       "id": "ec800d6d-3e0c-428b-9ba2-51daceb9da7d",
@@ -1481,7 +1525,7 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        200,
+        420,
         -360
       ],
       "id": "10da25e9-e1c5-4d47-9b42-0b08997741de",
@@ -1510,7 +1554,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        200,
+        420,
         -180
       ],
       "id": "42d6a6b9-4716-41b1-819a-4c002db9449b",
@@ -1527,7 +1571,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        1140,
+        1360,
         -200
       ],
       "id": "c48e9623-814e-4724-8ea7-54594823f9bb",
@@ -1556,7 +1600,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        680,
+        900,
         -360
       ],
       "id": "69738744-f48d-41b3-adb0-3e2ff14727fa",
@@ -1567,7 +1611,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        940,
+        1160,
         -200
       ],
       "id": "2abce3ef-fff5-4564-9fcb-3ad84682093c",
@@ -1578,7 +1622,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        4280,
+        4500,
         560
       ],
       "id": "a9df65ff-49c8-4dac-a3eb-082ffe496309",
@@ -1595,7 +1639,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        4440,
+        4660,
         560
       ],
       "id": "245cda46-42f6-4b59-a1f3-96ea32ed9fd0",
@@ -1606,7 +1650,7 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        2080,
+        2300,
         540
       ],
       "id": "20096c82-e446-410a-8a0a-93df56fd2c9c",
@@ -1640,8 +1684,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        4620,
-        560
+        4840,
+        400
       ],
       "id": "bcadc3e6-2229-4f77-b8fe-c5e3cc2b2f5c",
       "name": "If"
@@ -1847,8 +1891,8 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        4860,
-        440
+        5080,
+        280
       ],
       "id": "871f7ac2-d6b8-4e63-abe9-73a2c93b7db6",
       "name": "Create a record1",
@@ -1867,7 +1911,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        900,
+        1120,
         1400
       ],
       "id": "57c9e356-597e-4992-bc6c-f987efd93211",
@@ -1878,6 +1922,223 @@
           "name": "Groq account"
         }
       }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -740,
+        840
+      ],
+      "id": "6420da38-1690-41dd-aaee-ebd15065958b",
+      "name": "Data Pass"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5860,
+        1140
+      ],
+      "id": "b5ef16a3-2571-4f99-ac8f-c25502f785d6",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        6040,
+        1140
+      ],
+      "id": "3babe625-5f97-40f1-8c74-03a310561d77",
+      "name": "Aggregate7"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n\"prediction\": \n\"Lack of data\",\n\"confidence\": \n\"Lack of data\",\n\"recommended_action\": \n\"Lack of data\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5080,
+        1020
+      ],
+      "id": "11a8f16c-7315-4689-a258-c60fef586bd6",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"summary\": {{ $json.Topic }} ,\n  \"positive_reply\": {\n    \"prediction\": \"Lack Of data\",\n    \"confidence\": \"Lack Of data\"\n  },\n  \"negative_reply\": {\n    \"prediction\": \"Lack Of data\",\n    \"confidence\": \"Lack Of data\"\n  },\n  \"no_reply\": {\n    \"prediction\": \"Lack Of data\",\n    \"confidence\": \"Lack Of data\"\n  },\n  \"recommended_strategy\": \"Lack Of data\",\n  \"rationale\": \"Lack Of data\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5080,
+        1460
+      ],
+      "id": "39c7d5bb-7c99-4d5a-9988-3b17c0f1586f",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        5080,
+        1280
+      ],
+      "id": "71392623-f726-4646-b46a-d72d8ec9ea9b",
+      "name": "pass data2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        5080,
+        860
+      ],
+      "id": "24b281c0-2dfa-47ec-80e4-0257c630817f",
+      "name": "pass data3"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "BbjbimSUmtDu1bo3",
+          "mode": "list",
+          "cachedResultName": "Future_Prediction_Subnode"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "mail_body": "={{ $json.Metadata.text }}",
+            "sender_mail": "={{ $json.Metadata.sender }}",
+            "tel_id": "={{ $('Get a row').item.json.user_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "mail_body",
+              "displayName": "mail_body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "sender_mail",
+              "displayName": "sender_mail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "tel_id",
+              "displayName": "tel_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        4880,
+        940
+      ],
+      "id": "e1d3ff9f-c6fd-4753-8ddd-fa0fd5eef7aa",
+      "name": "Future Prediction Subnode",
+      "retryOnFail": true,
+      "alwaysOutputData": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "DqpdgZplyFvFICzE",
+          "mode": "list",
+          "cachedResultName": "Parallel_Answer_Subnode"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "tel_id": "={{ $('Get a row').item.json.user_id }}",
+            "senders_email_ID": "={{ $json.Metadata.sender }}",
+            "mail_body": "={{ $json.Metadata.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "mail_body",
+              "displayName": "mail_body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "senders_email_ID",
+              "displayName": "senders_email_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "tel_id",
+              "displayName": "tel_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        4880,
+        1380
+      ],
+      "id": "c849afaf-8cde-4764-95e5-8cd4a18b5ae3",
+      "name": "Parallel Answer Subnode",
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
     }
   ],
   "connections": {
@@ -2044,7 +2305,7 @@
       "main": [
         [
           {
-            "node": "Contain attachments?",
+            "node": "Data Pass",
             "type": "main",
             "index": 0
           }
@@ -2383,9 +2644,19 @@
       "main": [
         [
           {
-            "node": "Pinecone Vector Store1",
+            "node": "Future Prediction Subnode",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Parallel Answer Subnode",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
           }
         ]
       ]
@@ -2677,6 +2948,119 @@
           {
             "node": "Email Summarization Chain",
             "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Pass": {
+      "main": [
+        [
+          {
+            "node": "Contain attachments?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "Aggregate7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate7": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "pass data2": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "pass data3": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Future Prediction Subnode": {
+      "main": [
+        [
+          {
+            "node": "pass data3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parallel Answer Subnode": {
+      "main": [
+        [
+          {
+            "node": "pass data2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
             "index": 0
           }
         ]
