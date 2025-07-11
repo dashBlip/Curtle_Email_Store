@@ -7,8 +7,8 @@
       "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
       "typeVersion": 1.1,
       "position": [
-        0,
-        0
+        -80,
+        40
       ],
       "id": "8905a991-ae24-4e5a-8089-8dc2a57f88c8",
       "name": "MCP Server Trigger",
@@ -31,12 +31,12 @@
     },
     {
       "parameters": {
-        "description": "call this tool when email_summary of a user is required or any other information regarding email_summary",
+        "description": "Call this tool to fetch, summarize, and analyze a user's emails. Use it for any request about email content, including key points, predicted outcomes, or the potential results of a reply",
         "workflowId": {
           "__rl": true,
           "value": "8EAeb3JMXVSOzd31",
           "mode": "list",
-          "cachedResultName": "My workflow"
+          "cachedResultName": "Summary_Provider_Subnode"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
@@ -72,129 +72,11 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
       "position": [
-        -300,
-        300
+        -40,
+        280
       ],
       "id": "43376095-0f26-441b-aa26-634df7f186db",
       "name": "Summary_Fetch_Tool"
-    },
-    {
-      "parameters": {
-        "description": "=This tool analyzes the given email message and predicts the most probable next event in the conversation. It provides a single likely future outcome, a confidence score, and a recommended action to prepare. Use this tool when you want to anticipate what will happen next in an email thread and suggest proactive steps to the user.\n",
-        "workflowId": {
-          "__rl": true,
-          "value": "BbjbimSUmtDu1bo3",
-          "mode": "list",
-          "cachedResultName": "Future_Prediction_Subnode"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "mail_body": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('mail_body', ``, 'string') }}",
-            "mail_sender": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('mail_sender', ``, 'string') }}",
-            "tel_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('tel_id', ``, 'string') }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "mail_body",
-              "displayName": "mail_body",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            },
-            {
-              "id": "mail_sender",
-              "displayName": "mail_sender",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            },
-            {
-              "id": "tel_id",
-              "displayName": "tel_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
-      "typeVersion": 2.2,
-      "position": [
-        -100,
-        300
-      ],
-      "id": "face5368-6e4a-4203-9ff1-0d3a659eab95",
-      "name": "Future_Predection_Tool"
-    },
-    {
-      "parameters": {
-        "description": "=This tool analyzes an email and generates predictions of multiple possible future scenarios depending on the user's response strategy. It provides a concise summary, forecasts outcomes for replying positively, replying negatively, or not replying at all, and includes confidence scores for each prediction. It also recommends the best strategy with a rationale. Use this tool when you want to explore alternative futures and help the user choose the most effective response.\n",
-        "workflowId": {
-          "__rl": true,
-          "value": "DqpdgZplyFvFICzE",
-          "mode": "list",
-          "cachedResultName": "Parallel_Answer_Subnode"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "mail_body": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('mail_body', ``, 'string') }}",
-            "mail_sender": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('mail_sender', ``, 'string') }}",
-            "tel_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('tel_id', ``, 'string') }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "mail_body",
-              "displayName": "mail_body",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            },
-            {
-              "id": "mail_sender",
-              "displayName": "mail_sender",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            },
-            {
-              "id": "tel_id",
-              "displayName": "tel_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string"
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
-      "typeVersion": 2.2,
-      "position": [
-        80,
-        300
-      ],
-      "id": "d2db2517-70c8-4f26-854e-19bc418977b8",
-      "name": "Parallel_Answer_Tool"
     }
   ],
   "connections": {
@@ -210,28 +92,6 @@
       ]
     },
     "Summary_Fetch_Tool": {
-      "ai_tool": [
-        [
-          {
-            "node": "MCP Server Trigger",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Future_Predection_Tool": {
-      "ai_tool": [
-        [
-          {
-            "node": "MCP Server Trigger",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parallel_Answer_Tool": {
       "ai_tool": [
         [
           {
