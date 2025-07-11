@@ -2,129 +2,6 @@
   "nodes": [
     {
       "parameters": {
-        "model": "meta-llama/llama-4-maverick-17b-128e-instruct",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
-      "typeVersion": 1,
-      "position": [
-        240,
-        180
-      ],
-      "id": "06409616-f12f-448a-b2b5-e4cdd04085f7",
-      "name": "Groq Chat Model",
-      "credentials": {
-        "groqApi": {
-          "id": "IUNpwl8TJdD6I0oj",
-          "name": "Groq account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "mode": "retrieve-as-tool",
-        "toolDescription": "Search for the email summaries and metadata from the vector store",
-        "pineconeIndex": {
-          "__rl": true,
-          "value": "n8n3",
-          "mode": "list",
-          "cachedResultName": "n8n3"
-        },
-        "useReranker": true,
-        "options": {
-          "metadata": {
-            "metadataValues": [
-              {
-                "name": "tpkey",
-                "value": "={{ $('When Executed by Another Workflow').item.json.tel_id }}"
-              }
-            ]
-          }
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
-      "typeVersion": 1.3,
-      "position": [
-        500,
-        140
-      ],
-      "id": "6eddedb9-a4fa-4ec9-865e-a11d60e8ef8a",
-      "name": "Pinecone Vector Store",
-      "credentials": {
-        "pineconeApi": {
-          "id": "t0yqc0VBGVtCS3YG",
-          "name": "PineconeApi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
-      "typeVersion": 1.2,
-      "position": [
-        500,
-        300
-      ],
-      "id": "b2ccefb7-44cf-430a-842f-40e052d3d6e1",
-      "name": "Embeddings OpenAI",
-      "credentials": {
-        "openAiApi": {
-          "id": "9fWRmnZTn8WPiQ2O",
-          "name": "n8n free OpenAI API credits"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "includeTime": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Include_Current_Time', ``, 'boolean') }}",
-        "outputFieldName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Output_Field_Name', ``, 'string') }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dateTimeTool",
-      "typeVersion": 2,
-      "position": [
-        380,
-        180
-      ],
-      "id": "1e13cfca-c1f5-4d41-a881-035dc5e890bf",
-      "name": "Date & Time"
-    },
-    {
-      "parameters": {},
-      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
-      "typeVersion": 1,
-      "position": [
-        680,
-        300
-      ],
-      "id": "8a2a682a-0d48-4d9b-8d7e-d16eced07281",
-      "name": "Reranker Cohere",
-      "credentials": {
-        "cohereApi": {
-          "id": "08WgnNvcICCheOOX",
-          "name": "CohereApi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "options": {
-          "systemMessage": "You are an AI agent that answers user queries by fetching and analyzing data from a Pinecone vector store. Your goal is to provide clear, accurate, and concise responses that directly address the user's question. Follow these steps:\n\n1. **Understand the Query**:\n   - Identify the intent and key details of the user's question.\n   - If unclear, infer intent or ask for clarification.\n\n2. **Fetch Data**:\n   - Convert the query into a vector using a suitable embedding model.\n   - Query the Pinecone vector store to retrieve the top-5 relevant documents and their metadata (e.g., source, timestamp).\n   - Use the appropriate namespace or index as configured.\n\n3. **Analyze Data**:\n   - Evaluate document relevance based on similarity scores and metadata (e.g., recency, source credibility).\n   - Prioritize recent or authoritative data unless the query specifies otherwise.\n\n4. **Generate Response**:\n   - Synthesize a concise, accurate answer using the retrieved data.\n   - Reference metadata subtly (e.g., \"Recent data suggests...\").\n   - If data is insufficient, state so and provide the best possible answer.\n   - Use clear formatting (e.g., bullet points) if needed.\n\n5. **Handle Edge Cases**:\n   - If no relevant data is found, inform the user and offer general knowledge or further clarification.\n   - For conflicting data, prioritize based on metadata and note discrepancies.\n\n6. **Ethical Guidelines**:\n   - Ensure responses are unbiased, accurate, and professional.\n   - Avoid fabricating information or including irrelevant details.\n\n7. **Output**:\n   - Deliver the answer in plain text or markdown, or as requested by the user.\n   - Keep the response concise and relevant."
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 2,
-      "position": [
-        260,
-        -80
-      ],
-      "id": "cbb85575-b8aa-406b-a7dc-6d917cc7767e",
-      "name": "Retreival Agent"
-    },
-    {
-      "parameters": {
         "workflowInputs": {
           "values": [
             {
@@ -139,75 +16,115 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
       "position": [
-        -40,
-        -80
+        1040,
+        120
       ],
       "id": "a7490b1b-1e96-47aa-a058-7df52ed90591",
       "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "n8n3",
+          "mode": "list",
+          "cachedResultName": "n8n3"
+        },
+        "prompt": "={{ $json.chatInput }}",
+        "useReranker": true,
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "tpkey",
+                "value": "={{ $json.tel_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1260,
+        120
+      ],
+      "id": "4718ac18-c020-4d1d-ad81-5b5dfec617cd",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "t0yqc0VBGVtCS3YG",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        320
+      ],
+      "id": "cf08ce55-2361-4c42-9333-8db0b79604d9",
+      "name": "Reranker Cohere1",
+      "credentials": {
+        "cohereApi": {
+          "id": "08WgnNvcICCheOOX",
+          "name": "CohereApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1220,
+        320
+      ],
+      "id": "431fdf02-7f37-427a-a01d-411e7e6a80dc",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "9fWRmnZTn8WPiQ2O",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
     }
   ],
   "connections": {
-    "Groq Chat Model": {
-      "ai_languageModel": [
+    "When Executed by Another Workflow": {
+      "main": [
         [
           {
-            "node": "Retreival Agent",
-            "type": "ai_languageModel",
+            "node": "Pinecone Vector Store1",
+            "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Pinecone Vector Store": {
-      "ai_tool": [
-        [
-          {
-            "node": "Retreival Agent",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Embeddings OpenAI": {
-      "ai_embedding": [
-        [
-          {
-            "node": "Pinecone Vector Store",
-            "type": "ai_embedding",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Date & Time": {
-      "ai_tool": [
-        [
-          {
-            "node": "Retreival Agent",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Reranker Cohere": {
+    "Reranker Cohere1": {
       "ai_reranker": [
         [
           {
-            "node": "Pinecone Vector Store",
+            "node": "Pinecone Vector Store1",
             "type": "ai_reranker",
             "index": 0
           }
         ]
       ]
     },
-    "When Executed by Another Workflow": {
-      "main": [
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
         [
           {
-            "node": "Retreival Agent",
-            "type": "main",
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
             "index": 0
           }
         ]
